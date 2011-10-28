@@ -1,0 +1,13 @@
+// $Id$
+// vim:ft=javascript
+
+// If your extension references something external, use ARG_WITH
+// ARG_WITH("ruby", "for ruby support", "no");
+
+// Otherwise, use ARG_ENABLE
+// ARG_ENABLE("ruby", "enable ruby support", "no");
+
+if (PHP_RUBY != "no") {
+	EXTENSION("ruby", "ruby.c");
+}
+
