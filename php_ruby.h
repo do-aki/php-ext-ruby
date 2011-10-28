@@ -42,7 +42,7 @@ PHP_RINIT_FUNCTION(ruby);
 PHP_RSHUTDOWN_FUNCTION(ruby);
 PHP_MINFO_FUNCTION(ruby);
 
-PHP_FUNCTION(confirm_ruby_compiled);	/* For testing, remove later. */
+PHP_FUNCTION(ruby_eval);
 
 /* 
   	Declare any global variables you may need between the BEGIN

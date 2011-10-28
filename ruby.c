@@ -26,6 +26,7 @@
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_ruby.h"
+#include "ruby.h"
 
 /* If you declare any globals in php_ruby.h uncomment this:
 ZEND_DECLARE_MODULE_GLOBALS(ruby)
@@ -39,7 +40,7 @@ static int le_ruby;
  * Every user visible function must have an entry in ruby_functions[].
  */
 const zend_function_entry ruby_functions[] = {
-	PHP_FE(confirm_ruby_compiled,	NULL)		/* For testing, remove later. */
+    PHP_FE(ruby_eval, NULL)
 	PHP_FE_END	/* Must be the last line in ruby_functions[] */
 };
 /* }}} */
@@ -96,6 +97,8 @@ PHP_MINIT_FUNCTION(ruby)
 	/* If you have INI entries, uncomment these lines 
 	REGISTER_INI_ENTRIES();
 	*/
+
+	ruby_init();
 	return SUCCESS;
 }
 /* }}} */
@@ -133,8 +136,11 @@ PHP_RSHUTDOWN_FUNCTION(ruby)
  */
 PHP_MINFO_FUNCTION(ruby)
 {
+    VALUE ruby_version = rb_eval_string("RUBY_VERSION");
+
 	php_info_print_table_start();
 	php_info_print_table_header(2, "ruby support", "enabled");
+    php_info_print_table_row(2, "ruby version", StringValuePtr(ruby_version));
 	php_info_print_table_end();
 
 	/* Remove comments if you have entries in php.ini
@@ -143,33 +149,41 @@ PHP_MINFO_FUNCTION(ruby)
 }
 /* }}} */
 
-
-/* Remove the following function when you have succesfully modified config.m4
-   so that your module can be compiled into PHP, it exists only for testing
-   purposes. */
-
-/* Every user-visible function in PHP should document itself in the source */
-/* {{{ proto string confirm_ruby_compiled(string arg)
-   Return a string to confirm that the module is compiled in */
-PHP_FUNCTION(confirm_ruby_compiled)
+/* {{{ proto mixed ruby_eval(string code)
+   eval ruby code */
+PHP_FUNCTION(ruby_eval)
 {
-	char *arg = NULL;
-	int arg_len, len;
-	char *strg;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &arg, &arg_len) == FAILURE) {
+	char *code = NULL;
+	int code_len;
+	VALUE obj;
+ 
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &code, &code_len) == FAILURE) {
 		return;
 	}
 
-	len = spprintf(&strg, 0, "Congratulations! You have successfully modified ext/%.78s/config.m4. Module %.78s is now compiled into PHP.", "ruby", arg);
-	RETURN_STRINGL(strg, len, 0);
+	obj = rb_eval_string(code);
+	
+	switch(TYPE(obj)){
+		case T_FALSE:
+			RETURN_FALSE;
+		case T_TRUE:
+			RETURN_TRUE;
+		case T_UNDEF:
+		case T_NIL:
+			RETURN_NULL();
+		case T_FIXNUM:
+		case T_BIGNUM:
+			RETURN_LONG(NUM2LONG(obj));
+		case T_FLOAT:
+			RETURN_DOUBLE(NUM2DBL(obj));
+		case T_STRING:
+			RETURN_STRING(StringValuePtr(obj), 1);
+		default:
+			RETURN_STRING(StringValuePtr(obj), 1);
+	}
+
 }
 /* }}} */
-/* The previous line is meant for vim and emacs, so it can correctly fold and 
-   unfold functions in source code. See the corresponding marks just before 
-   function definition, where the functions purpose is also documented. Please 
-   follow this convention for the convenience of others editing your code.
-*/
 
 
 /*
