@@ -35,10 +35,10 @@ if test "$PHP_RUBY" != "no"; then
   dnl  done
   dnl i
   
-  if test -z "$RUBY_DIR"; then
-    AC_MSG_RESULT([not found])
-    AC_MSG_ERROR([Please reinstall the ruby distribution])
-  fi
+  dnl if test -z "$RUBY_DIR"; then
+  dnl   AC_MSG_RESULT([not found])
+  dnl   AC_MSG_ERROR([Please reinstall the ruby distribution])
+  dnl fi
 
   dnl # --with-ruby -> add include path
   dnl PHP_ADD_INCLUDE($RUBY_DIR/include)
@@ -48,16 +48,16 @@ if test "$PHP_RUBY" != "no"; then
   dnl LIBNAME=ruby # you may want to change this
   dnl LIBSYMBOL=ruby # you most likely want to change this 
   LIBNAME=ruby
-  LIBSYMBOL=ruby 
+  LIBSYMBOL=rb_eval_string 
 
   PHP_CHECK_LIBRARY($LIBNAME,$LIBSYMBOL,
   [
-    PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, /usr/lib64, RUBY_SHARED_LIBADD)
+    PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, /usr/lib64/, RUBY_SHARED_LIBADD)
     AC_DEFINE(HAVE_RUBYLIB,1,[ ])
   ],[
     AC_MSG_ERROR([wrong ruby lib version or lib not found])
   ],[
-    -L/usr/lib64/lib -lruby
+    -L/usr/lib64 -lruby
   ])
   
   PHP_SUBST(RUBY_SHARED_LIBADD)
