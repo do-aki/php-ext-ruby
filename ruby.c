@@ -26,7 +26,6 @@
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_ruby.h"
-#include "ruby.h"
 
 /* If you declare any globals in php_ruby.h uncomment this:
 ZEND_DECLARE_MODULE_GLOBALS(ruby)
@@ -155,36 +154,55 @@ PHP_FUNCTION(ruby_eval)
 {
 	char *code = NULL;
 	int code_len;
-	VALUE obj;
+	VALUE value;
  
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &code, &code_len) == FAILURE) {
 		return;
 	}
 
-	obj = rb_eval_string(code);
-	
-	switch(TYPE(obj)){
-		case T_FALSE:
-			RETURN_FALSE;
-		case T_TRUE:
-			RETURN_TRUE;
-		case T_UNDEF:
-		case T_NIL:
-			RETURN_NULL();
-		case T_FIXNUM:
-		case T_BIGNUM:
-			RETURN_LONG(NUM2LONG(obj));
-		case T_FLOAT:
-			RETURN_DOUBLE(NUM2DBL(obj));
-		case T_STRING:
-			RETURN_STRING(StringValuePtr(obj), 1);
-		default:
-			RETURN_STRING(StringValuePtr(obj), 1);
-	}
-
+	value = rb_eval_string(code);
+    php_ruby_value_to_zval(value, return_value);
 }
 /* }}} */
 
+PHP_RUBY_API void php_ruby_value_to_zval(VALUE value, zval *val) { /* {{{ */
+
+	switch(TYPE(value)) {
+		case T_FALSE:
+			ZVAL_FALSE(val);
+            return;
+		case T_TRUE:
+			ZVAL_TRUE(val);
+            return;
+		case T_UNDEF:
+		case T_NIL:
+			ZVAL_NULL(val);
+            return;
+		case T_FIXNUM:
+		case T_BIGNUM:
+			ZVAL_LONG(val, NUM2LONG(value));
+            return;
+		case T_FLOAT:
+			ZVAL_DOUBLE(val, NUM2DBL(value));
+            return;
+        case T_ARRAY: {
+            array_init(val);
+			int i, len = RARRAY_LEN(value);
+            for (i = 0; i < len; i++) {
+              zval *tmp;
+              VALUE v = RARRAY_PTR(value)[i];
+              MAKE_STD_ZVAL(tmp);
+              php_ruby_value_to_zval(v, tmp);
+              zend_hash_next_index_insert(Z_ARRVAL_P(val), &tmp, sizeof(zval *), NULL);
+            }
+            return;
+        }
+		case T_STRING:
+		default:
+			ZVAL_STRING(val, StringValuePtr(value), 1);
+	}
+}
+/* }}} */
 
 /*
  * Local variables:

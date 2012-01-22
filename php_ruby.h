@@ -21,6 +21,8 @@
 #ifndef PHP_RUBY_H
 #define PHP_RUBY_H
 
+#include "ruby.h"
+
 extern zend_module_entry ruby_module_entry;
 #define phpext_ruby_ptr &ruby_module_entry
 
@@ -43,6 +45,8 @@ PHP_RSHUTDOWN_FUNCTION(ruby);
 PHP_MINFO_FUNCTION(ruby);
 
 PHP_FUNCTION(ruby_eval);
+
+PHP_RUBY_API void php_ruby_value_to_zval(VALUE value, zval *val);
 
 /* 
   	Declare any global variables you may need between the BEGIN
