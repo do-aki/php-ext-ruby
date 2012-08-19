@@ -154,13 +154,17 @@ PHP_FUNCTION(ruby_eval)
 {
 	char *code = NULL;
 	int code_len;
+    int state;
 	VALUE value;
  
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &code, &code_len) == FAILURE) {
 		return;
 	}
 
-	value = rb_eval_string(code);
+	value = rb_eval_string_protect(code, &state);
+    if (0 != state) {
+      php_error_docref(NULL TSRMLS_CC, E_WARNING, "eval failed.");
+    }
     php_ruby_value_to_zval(value, return_value);
 }
 /* }}} */
@@ -183,7 +187,7 @@ PHP_RUBY_API void php_ruby_value_to_zval(VALUE value, zval *val) { /* {{{ */
 			ZVAL_LONG(val, NUM2LONG(value));
             return;
 		case T_FLOAT:
-			ZVAL_DOUBLE(val, NUM2DBL(value));
+			ZVAL_DOUBLE(val, RFLOAT_VALUE(value));
             return;
         case T_ARRAY: {
             array_init(val);

@@ -10,8 +10,7 @@ Introduction
 
 Scientific Linux release 6 (x86_64) 上で開発しています。
 
-ライブラリパス等が決め打ちなので、標準の ruby-devel パッケージが入っている必要があります。
-(autoconf よくわからないの)
+ruby 1.9 以上が必要となるハズです。
 
 ###sample code
 
@@ -28,6 +27,7 @@ Scientific Linux release 6 (x86_64) 上で開発しています。
 
 ### Slide (Tokyu Ruby Kaigi 04)
 http://www.slideshare.net/do_aki/20111029-rubyon-php
+
 
 Installation
 -----------
