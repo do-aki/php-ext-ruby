@@ -41,6 +41,7 @@ static int le_ruby;
 const zend_function_entry ruby_functions[] = {
     PHP_FE(ruby_version, NULL)
     PHP_FE(ruby_eval, NULL)
+    PHP_FE(ruby_require, NULL)
 	PHP_FE_END	/* Must be the last line in ruby_functions[] */
 };
 /* }}} */
@@ -179,6 +180,22 @@ PHP_FUNCTION(ruby_eval)
     php_ruby_value_to_zval(value, return_value);
 }
 /* }}} */
+
+/* {{{ proto mixed ruby_require(string file) */
+PHP_FUNCTION(ruby_require)
+{
+	char *file;
+    int file_len;
+    VALUE retval;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &file, &file_len) == FAILURE) {
+		return;
+	}
+
+    retval = rb_require(file);
+    php_ruby_value_to_zval(retval, return_value);
+}
+/* }}}*/
 
 PHP_RUBY_API void php_ruby_value_to_zval(VALUE value, zval *val) { /* {{{ */
 

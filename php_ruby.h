@@ -46,6 +46,7 @@ PHP_MINFO_FUNCTION(ruby);
 
 PHP_FUNCTION(ruby_version);
 PHP_FUNCTION(ruby_eval);
+PHP_FUNCTION(ruby_require);
 
 PHP_RUBY_API void php_ruby_value_to_zval(VALUE value, zval *val);
 
