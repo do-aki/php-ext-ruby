@@ -39,6 +39,7 @@ static int le_ruby;
  * Every user visible function must have an entry in ruby_functions[].
  */
 const zend_function_entry ruby_functions[] = {
+    PHP_FE(ruby_version, NULL)
     PHP_FE(ruby_eval, NULL)
 	PHP_FE_END	/* Must be the last line in ruby_functions[] */
 };
@@ -147,6 +148,16 @@ PHP_MINFO_FUNCTION(ruby)
 	*/
 }
 /* }}} */
+
+/* {{{ proto mixed ruby_version() */
+PHP_FUNCTION(ruby_version)
+{
+    VALUE version;
+    version = rb_const_get(rb_mKernel, rb_intern("RUBY_VERSION"));
+
+    RETURN_STRING(StringValuePtr(version), 1);
+}
+/* }}}*/
 
 /* {{{ proto mixed ruby_eval(string code)
    eval ruby code */
