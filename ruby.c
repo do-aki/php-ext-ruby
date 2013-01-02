@@ -197,7 +197,7 @@ PHP_FUNCTION(ruby_require)
 }
 /* }}}*/
 
-static int hash_to_zval(VALUE key, VALUE value, VALUE zval_array) {
+static int hash_to_zval(VALUE key, VALUE value, VALUE zval_array) { /* {{{ */
   zval *v;
   zval *ary;
 
@@ -243,7 +243,7 @@ static int hash_to_zval(VALUE key, VALUE value, VALUE zval_array) {
 
   return ST_CONTINUE;
 }
-
+/* }}} */
 
 PHP_RUBY_API void php_ruby_value_to_zval(VALUE value, zval *val) { /* {{{ */
 
