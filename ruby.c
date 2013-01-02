@@ -197,6 +197,54 @@ PHP_FUNCTION(ruby_require)
 }
 /* }}}*/
 
+static int hash_to_zval(VALUE key, VALUE value, VALUE zval_array) {
+  zval *v;
+  zval *ary;
+
+  if (key == Qundef) {
+    return ST_CONTINUE;
+  }
+
+  ary = (zval*)zval_array;
+  MAKE_STD_ZVAL(v);
+  php_ruby_value_to_zval(value, v);
+
+  if (Qtrue == key) {
+    zend_hash_index_update(Z_ARRVAL_P(ary), 1, &v, sizeof(zval *), NULL);
+    return ST_CONTINUE;
+  }
+
+  if (Qfalse == key || Qnil == key) {
+    zend_hash_index_update(Z_ARRVAL_P(ary), 0, &v, sizeof(zval *), NULL);
+    return ST_CONTINUE;
+  }
+
+  if (T_FIXNUM == TYPE(key)) {
+    int idx = FIX2INT(key);
+    zend_hash_index_update(Z_ARRVAL_P(ary), idx, &v, sizeof(zval *), NULL);
+    return ST_CONTINUE;
+  }
+
+  switch (TYPE(key)) {
+    case T_BIGNUM:
+      key = rb_big2str(key, 10);
+      break;
+    case T_SYMBOL:
+      key = rb_sym_to_s(key);
+      break;
+    case T_STRING:
+      key = rb_string_value(&key);
+      break;
+    default:
+	  key = rb_new_str2("__inconvertible__");
+  }
+
+  zend_symtable_update(Z_ARRVAL_P(ary), RSTRING_PTR(key), RSTRING_LEN(key) + 1, &v, sizeof(zval *), NULL);
+
+  return ST_CONTINUE;
+}
+
+
 PHP_RUBY_API void php_ruby_value_to_zval(VALUE value, zval *val) { /* {{{ */
 
 	switch(TYPE(value)) {
@@ -229,6 +277,10 @@ PHP_RUBY_API void php_ruby_value_to_zval(VALUE value, zval *val) { /* {{{ */
             }
             return;
         }
+		case T_HASH:
+			array_init(val);
+            rb_hash_foreach(value, hash_to_zval, (VALUE)val);
+			return;
 		case T_STRING:
 		default:
 			ZVAL_STRING(val, StringValuePtr(value), 1);
