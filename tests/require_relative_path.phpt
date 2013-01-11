@@ -4,7 +4,7 @@ ruby_require
 <?php
 
 chdir(__DIR__);
-ruby_require('require.rb');
+ruby_require('./require.rb');
 
 echo ruby_eval('loaded_function()');
 --EXPECT--
