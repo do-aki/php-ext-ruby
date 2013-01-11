@@ -184,15 +184,48 @@ PHP_FUNCTION(ruby_eval)
 /* {{{ proto mixed ruby_require(string file) */
 PHP_FUNCTION(ruby_require)
 {
-	char *file;
-    int file_len;
+	char *_filename;
+    int filename_len;
+	char *filename;
+	char resolved_path_buff[MAXPATHLEN];
+	FILE *file;
     VALUE retval;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &file, &file_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &_filename, &filename_len) == FAILURE) {
 		return;
 	}
 
-    retval = rb_require(file);
+    if (IS_ABSOLUTE_PATH(_filename, filename_len)) {
+        filename = estrdup(_filename);
+	} else {
+		char *ret = NULL;
+		char cwd[MAXPATHLEN];
+#if HAVE_GETCWD
+		ret = VCWD_GETCWD(cwd, MAXPATHLEN);
+#elif HAVE_GETWD
+		ret = VCWD_GETWD(cwd);
+#endif
+		filename = ecalloc(filename_len + strlen(cwd) + 1, sizeof(char));
+		strcat(filename, cwd);
+		strcat(filename, "/");
+		strcat(filename, _filename);
+	}
+
+	if (!VCWD_REALPATH(filename, resolved_path_buff)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "realpath failed. '%s'", filename);
+		efree(filename);
+		return;
+	}
+	efree(filename);
+
+    file = fopen(resolved_path_buff, "r");
+	if (!file) {
+        php_error_docref(NULL TSRMLS_CC, E_WARNING, "can not open file. [%s]", resolved_path_buff);
+		return;
+	}
+	fclose(file);
+
+	retval = rb_require(resolved_path_buff);
     php_ruby_value_to_zval(retval, return_value);
 }
 /* }}}*/
