@@ -100,6 +100,9 @@ PHP_MINIT_FUNCTION(ruby)
 	*/
 
 	ruby_init();
+	ruby_init_loadpath();
+	rb_enc_find_index("encdb");
+	rb_require("rubygems");
 	return SUCCESS;
 }
 /* }}} */
