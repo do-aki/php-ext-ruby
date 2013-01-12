@@ -177,8 +177,10 @@ PHP_FUNCTION(ruby_eval)
 	}
 
 	value = rb_eval_string_protect(code, &state);
-    if (0 != state) {
-      php_error_docref(NULL TSRMLS_CC, E_WARNING, "eval failed.");
+    if (state) {
+		VALUE msg = rb_funcall(rb_rubylevel_errinfo(), rb_intern("to_s"), 0);
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "ruby: %s", StringValueCStr(msg));
+		RETURN_FALSE;
     }
     php_ruby_value_to_zval(value, return_value);
 }
